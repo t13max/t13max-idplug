@@ -1,84 +1,65 @@
 package com.t13max.idplug.wechat.bar;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
-import java.util.Timer;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.util.Consumer;
+import com.t13max.idplug.wechat.service.WechatService;
+import com.t13max.idplug.wechat.windows.WechatToolWindowFactory;
+import java.awt.event.MouseEvent;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.TimerTask;
+/** 状态栏仅显示微信图标和未读红点，任何提示都不包含消息正文。 */
+public final class WechatStatusBarWidget implements StatusBarWidget, StatusBarWidget.IconPresentation {
+    public static final String ID = "WechatStatusBar";
+    private static final Icon NORMAL = IconLoader.getIcon("/icons/wechat.svg", WechatStatusBarWidget.class);
+    private static final Icon UNREAD = IconLoader.getIcon("/icons/wechatUnread.svg", WechatStatusBarWidget.class);
+    private final Project project;
+    private final WechatService service = WechatService.getInstance();
+    private StatusBar statusBar;
 
-/**
- * @author t13max
- * @since 17:00 2024/12/16
- */
-public class WechatStatusBarWidget implements StatusBarWidget {
+    /** 绑定状态栏所属项目。 */
+    public WechatStatusBarWidget(Project project) { this.project = project; }
 
-    public final static String ID = "WechatStatusBarWidget";
-
-    private JLabel label;
-    private Timer timer;
-    private String currentText = "";
-    private String fullText = "";
-
-    public WechatStatusBarWidget(Project project) {
-        this.label = new JLabel(" ");
-        this.label.setPreferredSize(new Dimension(200, 20)); // 设置宽度和高度
-    }
-
+    /** 返回与工厂一致的组件标识。 */
     @Override
-    public String ID() {
-        return "ScrollingStatusBarWidget";
-    }
+    public @NotNull String ID() { return ID; }
 
+    /** 安装状态栏并订阅未读变化。 */
     @Override
-    public void install(StatusBar statusBar) {
-        // 安装时做初始化
+    public void install(@NotNull StatusBar statusBar) {
+        this.statusBar = statusBar;
+        service.subscribe(this, () -> { if (this.statusBar != null && !project.isDisposed()) { this.statusBar.updateWidget(ID); } });
+        service.start();
     }
 
+    /** 使用平台标准图标展示接口。 */
     @Override
-    public void dispose() {
-        // 清理定时器等
-        if (timer != null) {
-            timer.cancel();
-        }
-    }
+    public WidgetPresentation getPresentation() { return this; }
 
-    public JComponent getComponent() {
-        return label; // 返回显示文本的组件
-    }
+    /** 有未读时显示红点，不展示联系人或消息内容。 */
+    @Override
+    public @NotNull Icon getIcon() { return service.history().unreadTotal() > 0 ? UNREAD : NORMAL; }
 
-    public void setText(String text) {
-        this.fullText = text;
-        this.currentText = text;
-        startScrolling();
-    }
+    /** 悬浮提示只包含是否有新消息和快捷键。 */
+    @Override
+    public @NotNull String getTooltipText() { return service.history().unreadTotal() > 0 ? "微信有新消息 · Alt+W 打开" : "微信 · Alt+W 显示或隐藏"; }
 
-    private void startScrolling() {
-        if (timer != null) {
-            timer.cancel();
-        }
-
-        timer = new Timer();
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                // 每100ms 更新一次文字
-                SwingUtilities.invokeLater(() -> {
-                    if (!StringUtil.isEmpty(currentText)) {
-                        label.setText(currentText);
-                        // 向左滚动一位
-                        currentText = currentText.substring(1) + currentText.charAt(0);
-                    } else {
-                        label.setText(""); // 滚动完成后清空
-                    }
-                });
-            }
+    /** 点击图标打开微信窗口，不自动清除其他会话的未读。 */
+    @Override
+    public Consumer<MouseEvent> getClickConsumer() {
+        return event -> {
+            if (project.isDisposed()) { return; }
+            ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(WechatToolWindowFactory.ID);
+            if (window != null) { window.activate(null); }
         };
-
-        // 启动定时器，100ms更新一次，最多持续5秒
-        timer.scheduleAtFixedRate(task, 0, 100);
     }
+
+    /** 释放状态栏引用，监听由平台销毁链移除。 */
+    @Override
+    public void dispose() { statusBar = null; }
 }

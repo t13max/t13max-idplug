@@ -1,53 +1,48 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.24"
-    id("org.jetbrains.intellij") version "1.17.3"
+    id("org.jetbrains.intellij.platform") version "2.18.1"
 }
 
 group = "com.t13max.idplug.wechat"
-version = "1.0-SNAPSHOT"
+version = "1.1.0"
 
 repositories {
-    mavenLocal()
     mavenCentral()
+    intellijPlatform { defaultRepositories() }
 }
 
 dependencies {
-
-    implementation("com.t13max.wxbot:t13max-wxbot-core:1.0.0")
+    implementation("com.google.code.gson:gson:2.13.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.3")
+    intellijPlatform {
+        val localIde = providers.gradleProperty("localIdePath")
+        if (localIde.isPresent) { local(localIde.get()) } else { intellijIdea("2026.1") }
+        pluginVerifier()
+    }
 }
 
-// Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    version.set("2024.2.1")
-    type.set("IC") // Target IDE Platform
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(providers.gradleProperty("buildJavaVersion").getOrElse("21").toInt())
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
-    plugins.set(listOf(/* Plugin Dependencies */))
+intellijPlatform {
+    // 界面全部使用普通 Swing，无需表单字节码插桩。
+    instrumentCode = false
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "261"
+        }
+    }
+    pluginVerification { ides { current() } }
 }
 
 tasks {
-    // Set the JVM compatibility versions
-    withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+    withType<JavaCompile>().configureEach {
+        options.encoding = "UTF-8"
+        options.release = 21
     }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
-    }
-
-    patchPluginXml {
-        sinceBuild.set("241")
-        untilBuild.set("242.*")
-    }
-
-    signPlugin {
-        certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
-        privateKey.set(System.getenv("PRIVATE_KEY"))
-        password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
-    }
-
-    publishPlugin {
-        token.set(System.getenv("PUBLISH_TOKEN"))
-    }
+    test { useJUnitPlatform() }
 }

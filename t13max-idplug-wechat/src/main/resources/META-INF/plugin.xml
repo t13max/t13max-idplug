@@ -8,13 +8,15 @@
     <name>T13max-idplug-wechat</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="t13max@163.com" url="https://www.yourcompany.com">YourCompany</vendor>
+    <vendor email="t13max@163.com" url="https://github.com/t13max">t13max</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    个人微信, idea插件版
+    WeChat conversations, local message history and private unread notifications inside IntelliJ IDEA.
+    在 IDEA 右侧查看微信联系人和本地聊天历史，支持扫码登录、回车发送、未读图标提醒和 Alt+W 显隐。
+    登录会话通过 IDE 安全凭据存储保存，会话失效后需重新扫码。账号需要支持微信网页版登录。
   ]]></description>
 
     <!-- Product and plugin compatibility requirements.
@@ -24,12 +26,13 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="WechatToolWindowFactory" anchor="right"
-                    factoryClass="com.t13max.idplug.wechat.windows.WechatToolWindowFactory"/>
-        <!--<statusBarWidgetFactory id="WechatStatusBarFactory"
-                                implementation="com.t13max.idplug.wechat.bar.MarqueeWidgetFactory"/>-->
+        <toolWindow id="WeChat" anchor="right" icon="/icons/wechat.svg" factoryClass="com.t13max.idplug.wechat.windows.WechatToolWindowFactory"/>
+        <statusBarWidgetFactory id="WechatStatusBar" implementation="com.t13max.idplug.wechat.bar.WechatStatusBarWidgetFactory" order="after Encoding"/>
+        <postStartupActivity implementation="com.t13max.idplug.wechat.service.WechatStartupActivity"/>
     </extensions>
     <actions>
-
+        <action id="T13max.Wechat.Toggle" class="com.t13max.idplug.wechat.windows.ToggleWechatAction" text="显示或隐藏微信" description="切换微信工具窗口">
+            <keyboard-shortcut keymap="$default" first-keystroke="alt W"/>
+        </action>
     </actions>
 </idea-plugin>
