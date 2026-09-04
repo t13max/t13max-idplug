@@ -1,0 +1,18 @@
+<idea-plugin>
+    <id>com.t13max.idplug.heybox</id>
+    <name>T13max Heybox Line Reader</name>
+    <vendor email="t13max@163.com">t13max</vendor>
+    <description><![CDATA[Read Heybox website content in a compact status-bar line. Sign in through the official website in an embedded browser, browse your home feed and communities, and read available post text and comments with keyboard navigation. Experimental website adapter; availability depends on the official site.]]></description>
+    <depends>com.intellij.modules.platform</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <statusBarWidgetFactory id="T13maxHeyboxLine" implementation="com.t13max.idplug.heybox.HeyboxWidgetFactory"/>
+    </extensions>
+    <actions>
+        <action id="Heybox.Toggle" class="com.t13max.idplug.heybox.HeyboxAction" text="Heybox: Show or Hide"><keyboard-shortcut keymap="$default" first-keystroke="alt E"/></action>
+        <action id="Heybox.Next" class="com.t13max.idplug.heybox.HeyboxAction" text="Heybox: Next Item"><keyboard-shortcut keymap="$default" first-keystroke="alt D"/></action>
+        <action id="Heybox.Previous" class="com.t13max.idplug.heybox.HeyboxAction" text="Heybox: Previous Item"><keyboard-shortcut keymap="$default" first-keystroke="alt A"/></action>
+        <action id="Heybox.Open" class="com.t13max.idplug.heybox.HeyboxAction" text="Heybox: Enter or Exit Post"><keyboard-shortcut keymap="$default" first-keystroke="alt S"/></action>
+        <action id="Heybox.Back" class="com.t13max.idplug.heybox.HeyboxAction" text="Heybox: Back to List"><keyboard-shortcut keymap="$default" first-keystroke="control alt shift LEFT"/></action>
+        <action id="Heybox.Login" class="com.t13max.idplug.heybox.HeyboxAction" text="Heybox: Sign In"><keyboard-shortcut keymap="$default" first-keystroke="control alt shift L"/></action>
+    </actions>
+</idea-plugin>
