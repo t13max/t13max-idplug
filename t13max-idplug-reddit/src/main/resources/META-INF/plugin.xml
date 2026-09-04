@@ -1,0 +1,35 @@
+<idea-plugin>
+    <id>com.t13max.idplug.reddit</id>
+    <name>T13max Reddit Line Reader</name>
+    <vendor email="t13max@163.com">t13max</vendor>
+    <description><![CDATA[
+        Reddit Line Reader displays public Reddit RSS posts and available comments in one compact IntelliJ IDEA status-bar line without sign-in. Includes keyboard navigation, mouse-wheel horizontal scrolling, caching, and optional OAuth support.
+    ]]></description>
+    <depends>com.intellij.modules.platform</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <statusBarWidgetFactory id="T13maxRedditStatusBar" implementation="com.t13max.idplug.reddit.ui.RedditStatusBarWidgetFactory"/>
+    </extensions>
+    <actions>
+        <action id="T13maxReddit.Toggle" class="com.t13max.idplug.reddit.action.RedditActions$ToggleAction" text="Reddit Reader: Show or Hide">
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt shift R"/>
+        </action>
+        <action id="T13maxReddit.Next" class="com.t13max.idplug.reddit.action.RedditActions$NextAction" text="Reddit Reader: Next Item">
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt shift J"/>
+        </action>
+        <action id="T13maxReddit.Previous" class="com.t13max.idplug.reddit.action.RedditActions$PreviousAction" text="Reddit Reader: Previous Item">
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt shift K"/>
+        </action>
+        <action id="T13maxReddit.Open" class="com.t13max.idplug.reddit.action.RedditActions$OpenAction" text="Reddit Reader: Open Post">
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt shift ENTER"/>
+        </action>
+        <action id="T13maxReddit.Back" class="com.t13max.idplug.reddit.action.RedditActions$BackAction" text="Reddit Reader: Back to Posts">
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt shift BACK_SPACE"/>
+        </action>
+        <action id="T13maxReddit.Refresh" class="com.t13max.idplug.reddit.action.RedditActions$RefreshAction" text="Reddit Reader: Refresh">
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt shift U"/>
+        </action>
+        <action id="T13maxReddit.Community" class="com.t13max.idplug.reddit.action.RedditActions$CommunityAction" text="Reddit Reader: Choose Community">
+            <keyboard-shortcut keymap="$default" first-keystroke="control alt shift S"/>
+        </action>
+    </actions>
+</idea-plugin>
