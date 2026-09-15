@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 final class ReadingUiTest {
     /** 四种类型始终使用一个字母，不受语言选择影响。 */
     @Test
-    void mapsSingleLetterKinds() { assertEquals("P", ReadingText.marker("Post")); assertEquals("T", ReadingText.marker("Title")); assertEquals("B", ReadingText.marker("Body")); assertEquals("C", ReadingText.marker("Comment")); }
+    void mapsSingleLetterKinds() { assertEquals("P", ReadingText.marker("Post")); assertEquals("T", ReadingText.marker("Title")); assertEquals("B", ReadingText.marker("Body")); assertEquals("C", ReadingText.marker("Comment")); assertEquals("R", ReadingText.marker("Reply")); }
 
     /** 界面文字支持双向切换，不翻译网页内容。 */
     @Test

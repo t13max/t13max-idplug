@@ -18,7 +18,7 @@
             if (clean(line)) items.push({text: clean(line), url: '', kind: 'Body'});
         }
         for (const node of document.querySelectorAll('.comment-item__content, .children-item__comment-content')) {
-            if (text(node)) items.push({text: text(node), url: '', kind: 'Comment'});
+            if (text(node)) items.push({text: text(node), url: '', kind: node.matches('.children-item__comment-content') ? 'Reply' : 'Comment'});
         }
     } else if (/^\/app\/(bbs\/home|topic\/link\/\d+)$/.test(url.pathname)) {
         const seen = new Set();

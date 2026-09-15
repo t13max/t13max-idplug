@@ -29,7 +29,7 @@ public final class PageSnapshot {
         if (json == null || json.length() > 3_000_000) throw new IllegalArgumentException("Invalid page size");
         PageSnapshot page = new Gson().fromJson(json, PageSnapshot.class);
         if (page == null || !allowed(page.url) || page.items == null || page.communities == null) throw new IllegalArgumentException("Unsupported page");
-        page.items = page.items.stream().filter(item -> item != null && item.text != null && item.kind != null && List.of("Post", "Title", "Body", "Comment").contains(item.kind) && ("Post".equals(item.kind) ? allowed(item.url) && item.url.matches(".*/bbs/link/[0-9]+") : "".equals(item.url))).limit(200).map(PageSnapshot::sanitize).toList();
+        page.items = page.items.stream().filter(item -> item != null && item.text != null && item.kind != null && List.of("Post", "Title", "Body", "Comment", "Reply").contains(item.kind) && ("Post".equals(item.kind) ? allowed(item.url) && item.url.matches(".*/bbs/link/[0-9]+") : "".equals(item.url))).limit(200).map(PageSnapshot::sanitize).toList();
         page.communities = page.communities.stream().filter(value -> value != null && !value.isBlank() && value.length() <= 60).distinct().limit(40).toList();
         return page;
     }

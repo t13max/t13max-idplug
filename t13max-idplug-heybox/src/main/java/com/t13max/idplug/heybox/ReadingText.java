@@ -8,7 +8,7 @@ public final class ReadingText {
     private ReadingText() { }
 
     /** 将内容类型映射为固定单字母。 */
-    public static String marker(String kind) { return switch (kind) { case "Post" -> "P"; case "Title" -> "T"; case "Body" -> "B"; case "Comment" -> "C"; default -> "?"; }; }
+    public static String marker(String kind) { return switch (kind) { case "Post" -> "P"; case "Title" -> "T"; case "Body" -> "B"; case "Comment" -> "C"; case "Reply" -> "R"; default -> "?"; }; }
 
     /** 比较顺序、内容和地址，判断当前页面内容是否变化。 */
     public static boolean sameItems(List<PageSnapshot.Item> before, List<PageSnapshot.Item> after) {

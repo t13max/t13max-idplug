@@ -14,6 +14,9 @@ function extract(url, singles = {}, multiples = {}) {
 /** 创建模拟可见文本节点。 */
 function node(text, href = '', title = text) { return {innerText: text, getAttribute: () => href, querySelector: selector => selector === '.bbs-content__title' && title ? {innerText: title} : null}; }
 
+/** 模拟主评论与楼中楼的节点类型和稳定标识。 */
+function comment(text, child, id = '', rootId = id) { return {innerText: text, matches: selector => child && selector === '.children-item__comment-content', closest: selector => ({getAttribute: () => selector === '.link-comment__comment-item' ? rootId : id})}; }
+
 /** 验证主页条目去重和外链过滤。 */
 test('home extracts posts, login marker and communities', () => {
     const result = extract('https://www.xiaoheihe.cn/app/bbs/home', {'nav img[alt$="头像"]': node('avatar')}, {'main a[href]': [node('Post A', '/app/bbs/link/123'), node('Duplicate', '/app/bbs/link/123'), node('External', 'https://evil.test/app/bbs/link/123'), node('Profile', '/app/user/profile/1')], 'main button': [node('Steam'), node('搜索'), node('Steam')]});
@@ -25,8 +28,8 @@ test('home extracts posts, login marker and communities', () => {
 
 /** 验证标题、正文段落和子评论顺序。 */
 test('detail extracts body and comments without form contents', () => {
-    const result = extract('https://www.xiaoheihe.cn/app/bbs/link/123', {'.section-title__content': node('Title'), '.image-text__content': node('First\n\nSecond 😀')}, {'.comment-item__content, .children-item__comment-content': [node('Comment'), node('Reply')]});
-    assert.deepEqual(result.items.map(item => item.kind), ['Title', 'Body', 'Body', 'Comment', 'Comment']);
+    const result = extract('https://www.xiaoheihe.cn/app/bbs/link/123', {'.section-title__content': node('Title'), '.image-text__content': node('First\n\nSecond 😀')}, {'.comment-item__content, .children-item__comment-content': [comment('Comment', false, '10'), comment('Reply', true, '12', '10'), comment('Reply without ID', true)]});
+    assert.deepEqual(result.items.map(item => item.kind), ['Title', 'Body', 'Body', 'Comment', 'Reply', 'Reply']);
     assert.equal(result.items[2].text, 'Second 😀');
     assert.equal(result.signedIn, false);
 });
