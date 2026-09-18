@@ -574,10 +574,11 @@ public final class HeyboxReader implements Disposable {
         }
     }
 
-    /** 接收已校验的阅读内容，刷新时不恢复旧位置，成功后直接显示第一条。 */
+    /** 接收已校验的阅读内容，刷新首次展示时归位，后台完成确认不打断阅读。 */
     private void acceptReadingItems(PageSnapshot incoming, String fingerprint) {
         boolean first = page.items.isEmpty();
         page = incoming;
+        if (first && refreshBaseline != null) { savedIndex = 0; index = 0; offset = 0; }
         index = Math.min(first && refreshBaseline == null && listUrl.equals(page.url) ? savedIndex : index, page.items.size() - 1);
         status = "";
         stableSamples = fingerprint.equals(lastSnapshot) ? stableSamples + 1 : 0;
@@ -585,10 +586,6 @@ public final class HeyboxReader implements Disposable {
         if (refreshBaseline != null && stableSamples >= 3 && System.currentTimeMillis() - loadCompletedAt >= 8000) {
             refreshResult = ReadingText.sameItems(refreshBaseline.items, incoming.items) ? "Refreshed; page content unchanged" : "Refreshed; page content updated";
             refreshBaseline = null;
-            savedIndex = 0;
-            index = 0;
-            status = "";
-            offset = 0;
         }
     }
 

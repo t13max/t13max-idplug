@@ -28,15 +28,16 @@ final class ReaderNavigationTest {
         assertEquals("P [2/2] Second", reader.text());
     }
 
-    /** 刷新结果无论是否变化都直接显示第一帖，继续阅读不会跳过第一帖。 */
+    /** 刷新首次显示第一帖，后台确认无论是否更新都保留用户翻页和横向滚动位置。 */
     @Test
-    void refreshShowsFirstPostAndKeepsResultInMenu() throws Exception {
-        for (boolean updated : new boolean[]{false, true}) {
+    void refreshPreservesReadingPositionWhenConfirmationArrives() throws Exception {
+        for (boolean updated : new boolean[]{false, true}) for (boolean navigated : new boolean[]{false, true}) {
             HeyboxReader reader = new HeyboxReader();
             try {
                 PageSnapshot incoming = list();
                 set(reader, "refreshBaseline", list());
                 set(reader, "savedIndex", 1);
+                set(reader, "index", 1);
                 set(reader, "listUrl", incoming.url);
                 set(reader, "loadCompletedAt", System.currentTimeMillis() - 9000);
                 set(reader, "offset", 80);
@@ -47,16 +48,21 @@ final class ReaderNavigationTest {
                 method.invoke(reader, incoming, "stable");
                 assertEquals(first, reader.text());
                 assertNotNull(get(reader, "refreshBaseline"));
-                reader.move(1);
-                assertEquals("P [2/2] Second", reader.text());
+                assertEquals(0, get(reader, "offset"));
+                if (navigated) { reader.move(1); set(reader, "offset", 36); }
+                String expected = navigated ? "P [2/2] Second" : first;
+                assertEquals(expected, reader.text());
                 for (int sample = 0; sample < 3; sample++) method.invoke(reader, incoming, "stable");
-                assertEquals(first, reader.text());
+                assertEquals(expected, reader.text());
                 assertEquals(updated ? "Refreshed; page content updated" : "Refreshed; page content unchanged", reader.refreshResult());
                 assertEquals(0, get(reader, "savedIndex"));
-                assertEquals(0, get(reader, "offset"));
+                assertEquals(navigated ? 36 : 0, get(reader, "offset"));
                 assertNull(get(reader, "refreshBaseline"));
+                method.invoke(reader, incoming, "stable");
+                assertEquals(expected, reader.text());
+                assertEquals(navigated ? 36 : 0, get(reader, "offset"));
                 reader.move(1);
-                assertEquals("P [2/2] Second", reader.text());
+                assertEquals(navigated ? first : "P [2/2] Second", reader.text());
             } finally { reader.dispose(); }
         }
     }
