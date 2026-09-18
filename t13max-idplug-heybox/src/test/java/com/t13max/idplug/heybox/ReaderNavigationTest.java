@@ -28,6 +28,39 @@ final class ReaderNavigationTest {
         assertEquals("P [2/2] Second", reader.text());
     }
 
+    /** 刷新结果无论是否变化都直接显示第一帖，继续阅读不会跳过第一帖。 */
+    @Test
+    void refreshShowsFirstPostAndKeepsResultInMenu() throws Exception {
+        for (boolean updated : new boolean[]{false, true}) {
+            HeyboxReader reader = new HeyboxReader();
+            try {
+                PageSnapshot incoming = list();
+                set(reader, "refreshBaseline", list());
+                set(reader, "savedIndex", 1);
+                set(reader, "listUrl", incoming.url);
+                set(reader, "loadCompletedAt", System.currentTimeMillis() - 9000);
+                set(reader, "offset", 80);
+                if (updated) incoming.items.getFirst().text = "Updated";
+                var method = HeyboxReader.class.getDeclaredMethod("acceptReadingItems", PageSnapshot.class, String.class);
+                method.setAccessible(true);
+                String first = "P [1/2] " + (updated ? "Updated" : "First");
+                method.invoke(reader, incoming, "stable");
+                assertEquals(first, reader.text());
+                assertNotNull(get(reader, "refreshBaseline"));
+                reader.move(1);
+                assertEquals("P [2/2] Second", reader.text());
+                for (int sample = 0; sample < 3; sample++) method.invoke(reader, incoming, "stable");
+                assertEquals(first, reader.text());
+                assertEquals(updated ? "Refreshed; page content updated" : "Refreshed; page content unchanged", reader.refreshResult());
+                assertEquals(0, get(reader, "savedIndex"));
+                assertEquals(0, get(reader, "offset"));
+                assertNull(get(reader, "refreshBaseline"));
+                reader.move(1);
+                assertEquals("P [2/2] Second", reader.text());
+            } finally { reader.dispose(); }
+        }
+    }
+
     /** 无内容时保留可点击的提示，不显示反斜杠。 */
     @Test
     void initialHintHasNoMarker() { assertEquals("Click to sign in", new HeyboxReader().text()); }
@@ -48,4 +81,7 @@ final class ReaderNavigationTest {
         assertEquals(true, method.invoke(reader, loggedOut)); assertFalse(reader.isSignedIn());
         assertEquals("Signed out; click to sign in", reader.text());
     }
+
+    /** 读取测试状态，验证发送结果不会提前丢弃草稿。 */
+    private Object get(HeyboxReader reader, String name) throws Exception { var field = HeyboxReader.class.getDeclaredField(name); field.setAccessible(true); return field.get(reader); }
 }

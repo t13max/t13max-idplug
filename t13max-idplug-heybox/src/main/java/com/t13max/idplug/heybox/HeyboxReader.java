@@ -574,6 +574,24 @@ public final class HeyboxReader implements Disposable {
         }
     }
 
+    /** 接收已校验的阅读内容，刷新时不恢复旧位置，成功后直接显示第一条。 */
+    private void acceptReadingItems(PageSnapshot incoming, String fingerprint) {
+        boolean first = page.items.isEmpty();
+        page = incoming;
+        index = Math.min(first && refreshBaseline == null && listUrl.equals(page.url) ? savedIndex : index, page.items.size() - 1);
+        status = "";
+        stableSamples = fingerprint.equals(lastSnapshot) ? stableSamples + 1 : 0;
+        lastSnapshot = fingerprint;
+        if (refreshBaseline != null && stableSamples >= 3 && System.currentTimeMillis() - loadCompletedAt >= 8000) {
+            refreshResult = ReadingText.sameItems(refreshBaseline.items, incoming.items) ? "Refreshed; page content unchanged" : "Refreshed; page content updated";
+            refreshBaseline = null;
+            savedIndex = 0;
+            index = 0;
+            status = "";
+            offset = 0;
+        }
+    }
+
     /** 校验当前代次和地址后更新阅读状态，不记录账号数据到日志。 */
     private void accept(String payload) {
         if (disposed || browser == null) return;
@@ -595,22 +613,8 @@ public final class HeyboxReader implements Disposable {
             checkLogin(incoming);
             if (loginChecking) { status = "Checking sign-in status..."; changed(); return; }
             if (!incoming.items.isEmpty()) {
-                boolean first = page.items.isEmpty();
-                page = incoming;
-                index = Math.min(first && listUrl.equals(page.url) ? savedIndex : index, page.items.size() - 1);
-                status = "";
-                String fingerprint = envelope.get("page").toString();
-                stableSamples = fingerprint.equals(lastSnapshot) ? stableSamples + 1 : 0;
-                lastSnapshot = fingerprint;
+                acceptReadingItems(incoming, envelope.get("page").toString());
                 if (stableSamples >= 3) saveStableSession();
-                if (refreshBaseline != null && stableSamples >= 3 && System.currentTimeMillis() - loadCompletedAt >= 8000) {
-                    refreshResult = ReadingText.sameItems(refreshBaseline.items, incoming.items) ? "Refreshed; page content unchanged" : "Refreshed; page content updated";
-                    refreshBaseline = null;
-                    savedIndex = 0;
-                    index = 0;
-                    status = refreshResult;
-                    offset = 0;
-                }
                 if (!window.isVisible() && !loginRequested && !logoutRequested && refreshBaseline == null && stableSamples >= 3) timer.stop();
             }
             if (pendingCommunityDialog && HOME.equals(incoming.url) && !incoming.communities.isEmpty()) {

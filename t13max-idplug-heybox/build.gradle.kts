@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.t13max.idplug.heybox"
-version = "0.1.5"
+version = "0.2.1"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")
